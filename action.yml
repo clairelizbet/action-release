@@ -1,0 +1,59 @@
+name: Create and optionally publish a release
+
+inputs:
+  node-version:
+    description: "Node version"
+    type: "string"
+    required: false
+    default: "18.x"
+
+  draft:
+    description: "Create a draft release (default: true)"
+    type: "boolean"
+    required: false
+    default: true
+
+env:
+  tag: ${{ github.ref_name }}
+
+runs:
+  using: "composite"
+
+jobs:
+  release:
+    steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node-version }}
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Restore cached dependencies
+        id: npm-cache-restore
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: hashFiles('package-lock.json', 'package.json')
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: build-${{ github.ref }}
+
+      - name: Compile release template
+        working-directory: .github
+        run: |
+          touch release.md
+          mkdir -p dist
+          touch dist/title.txt
+          echo $tag > dist/title.txt
+          cp release.md dist/
+          npm run build:release --if-present
+
+      - name: Publish release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$tag" \
+            ${{ inputs.draft && '--draft' || '' }} \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$(< "$GITHUB_WORKSPACE/.github/dist/title.txt")" \
+            --notes-file "$GITHUB_WORKSPACE/.github/dist/release.md"
