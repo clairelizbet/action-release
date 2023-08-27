@@ -18,42 +18,41 @@ env:
 
 runs:
   using: "composite"
+  steps:
+    - uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node-version }}
+        registry-url: "https://registry.npmjs.org"
 
-jobs:
-  release:
-    steps:
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ inputs.node-version }}
-          registry-url: "https://registry.npmjs.org"
+    - name: Restore cached dependencies
+      id: npm-cache-restore
+      uses: actions/cache@v3
+      with:
+        path: node_modules
+        key: ${{ hashFiles('package-lock.json', 'package.json') }}
 
-      - name: Restore cached dependencies
-        id: npm-cache-restore
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: hashFiles('package-lock.json', 'package.json')
+    - uses: actions/download-artifact@v3
+      with:
+        name: build-${{ github.sha }}
 
-      - uses: actions/download-artifact@v3
-        with:
-          name: build-${{ github.ref }}
+    - name: Compile release template
+      working-directory: .github
+      run: |
+        touch release.md
+        mkdir -p dist
+        touch dist/title.txt
+        echo $tag > dist/title.txt
+        cp release.md dist/
+        npm run build:release --if-present
+      shell: bash
 
-      - name: Compile release template
-        working-directory: .github
-        run: |
-          touch release.md
-          mkdir -p dist
-          touch dist/title.txt
-          echo $tag > dist/title.txt
-          cp release.md dist/
-          npm run build:release --if-present
-
-      - name: Publish release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "$tag" \
-            ${{ inputs.draft && '--draft' || '' }} \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "$(< "$GITHUB_WORKSPACE/.github/dist/title.txt")" \
-            --notes-file "$GITHUB_WORKSPACE/.github/dist/release.md"
+    - name: Publish release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create "$tag" \
+          ${{ inputs.draft && '--draft' || '' }} \
+          --repo "$GITHUB_REPOSITORY" \
+          --title "$(< "$GITHUB_WORKSPACE/.github/dist/title.txt")" \
+          --notes-file "$GITHUB_WORKSPACE/.github/dist/release.md"
+      shell: bash
