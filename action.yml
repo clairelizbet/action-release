@@ -13,9 +13,6 @@ inputs:
     required: false
     default: true
 
-env:
-  tag: ${{ github.ref_name }}
-
 runs:
   using: "composite"
   steps:
@@ -50,7 +47,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release create "$tag" \
+        gh release create "${{ github.ref_name }}" \
           ${{ inputs.draft && '--draft' || '' }} \
           --repo "$GITHUB_REPOSITORY" \
           --title "$(< "$GITHUB_WORKSPACE/.github/dist/title.txt")" \
