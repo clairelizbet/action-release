@@ -1,6 +1,11 @@
 name: Create and optionally publish a release
 
 inputs:
+  token:
+    description: "GitHub access token"
+    type: "string"
+    required: true
+
   node-version:
     description: "Node version"
     type: "string"
@@ -45,7 +50,7 @@ runs:
 
     - name: Publish release
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.token }}
       run: |
         gh release create "${{ github.ref_name }}" \
           ${{ inputs.draft && '--draft' || '' }} \
