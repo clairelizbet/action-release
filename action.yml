@@ -51,7 +51,7 @@ runs:
         touch release.md
         mkdir -p dist
         touch dist/title.txt
-        echo $tag > dist/title.txt
+        echo "${{ github.ref_name }} Update 🔧" > dist/title.txt
         cp release.md dist/
         npm run build:release --if-present
       shell: bash
