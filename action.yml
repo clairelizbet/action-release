@@ -24,6 +24,12 @@ inputs:
     required: false
     default: true
 
+  files:
+    description: "Release attachments"
+    type: "string"
+    required: false
+    default: ""
+
 runs:
   using: "composite"
   steps:
@@ -64,5 +70,6 @@ runs:
           ${{ inputs.draft && '--draft' || '' }} \
           --repo "$GITHUB_REPOSITORY" \
           --title "$(< "$GITHUB_WORKSPACE/.github/dist/title.txt")" \
-          --notes-file "$GITHUB_WORKSPACE/.github/dist/release.md"
+          --notes-file "$GITHUB_WORKSPACE/.github/dist/release.md" \
+          ${{ files }}
       shell: bash
