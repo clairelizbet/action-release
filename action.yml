@@ -71,5 +71,5 @@ runs:
           --repo "$GITHUB_REPOSITORY" \
           --title "$(< "$GITHUB_WORKSPACE/.github/dist/title.txt")" \
           --notes-file "$GITHUB_WORKSPACE/.github/dist/release.md" \
-          ${{ files }}
+          ${{ inputs.files }}
       shell: bash
