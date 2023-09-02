@@ -53,11 +53,12 @@ runs:
     - name: Compile release template
       working-directory: .github
       run: |
-        touch release.md
         mkdir -p dist
+        touch dist/release.md
         touch dist/title.txt
         echo "${{ github.ref_name }} Update 🔧" > dist/title.txt
-        cp release.md dist/
+        if [ -f title.txt ]; then cp title.txt dist; fi
+        if [ -f release.md ]; then cp release.md dist; fi
         npm run build:release --if-present
       shell: bash
 
